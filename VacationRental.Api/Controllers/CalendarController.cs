@@ -33,20 +33,32 @@ namespace VacationRental.Api.Controllers
                 RentalId = rentalId,
                 Dates = new List<CalendarDateViewModel>() 
             };
+            
             for (var i = 0; i < nights; i++)
             {
                 var date = new CalendarDateViewModel
                 {
                     Date = start.Date.AddDays(i),
-                    Bookings = new List<CalendarBookingViewModel>()
+                    Bookings = new List<CalendarBookingViewModel>(),
+                    PreparationTimes = new List<PreparationTime>()
                 };
-
+                
+                var count = 0;
                 foreach (var booking in _bookings.Values)
                 {
-                    if (booking.RentalId == rentalId
-                        && booking.Start <= date.Date && booking.Start.AddDays(booking.Nights) > date.Date)
+                    var totalBookingNights = booking.Start.AddDays(booking.Nights);
+
+                    if (booking.RentalId == rentalId)
                     {
-                        date.Bookings.Add(new CalendarBookingViewModel { Id = booking.Id });
+                        count++;
+                        if (booking.Start <= date.Date && totalBookingNights > date.Date) 
+                        {
+                            date.Bookings.Add(new CalendarBookingViewModel { Id = booking.Id, Unit = count });
+                        }
+                        else if (totalBookingNights <= date.Date && (date.Date - totalBookingNights).TotalDays < _rentals[rentalId].PreparationTimeInDays) 
+                        {
+                            date.PreparationTimes.Add(new PreparationTime { Unit = count });
+                        }
                     }
                 }
 
