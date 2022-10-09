@@ -44,6 +44,8 @@ namespace VacationRental.Api.Controllers
                 };
                 
                 var count = 0;
+                var currentDate = date.Date;
+
                 foreach (var booking in _bookings.Values)
                 {
                     var totalBookingNights = booking.Start.AddDays(booking.Nights);
@@ -51,13 +53,17 @@ namespace VacationRental.Api.Controllers
                     if (booking.RentalId == rentalId)
                     {
                         count++;
-                        if (booking.Start <= date.Date && totalBookingNights > date.Date) 
+                        if (booking.Start <= currentDate && totalBookingNights > currentDate) 
                         {
                             date.Bookings.Add(new CalendarBookingViewModel { Id = booking.Id, Unit = count });
                         }
-                        else if (totalBookingNights <= date.Date && (date.Date - totalBookingNights).TotalDays < _rentals[rentalId].PreparationTimeInDays) 
+                        else if (totalBookingNights <= currentDate && (currentDate - totalBookingNights).TotalDays < _rentals[rentalId].PreparationTimeInDays) 
                         {
                             date.PreparationTimes.Add(new PreparationTime { Unit = count });
+                        }
+                        if (count == _rentals[rentalId].Units) 
+                        {
+                            count = 0;
                         }
                     }
                 }
